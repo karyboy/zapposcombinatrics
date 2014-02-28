@@ -2,8 +2,6 @@ package com.zappos.intern;
 
 import java.io.IOException;
 import java.util.ArrayList;
-
-import static us.monoid.web.Resty.*;
 import us.monoid.json.JSONArray;
 import us.monoid.json.JSONException;
 import us.monoid.json.JSONObject;
@@ -32,11 +30,11 @@ public class Zappos {
 	}
 	
 	public static void main(String args[]){
-		Zappos z=new Zappos(150.94,1);
+		Zappos z=new Zappos(1500.94,3);
 		z.getProducts("http://api.zappos.com/Search?term=boots&limit=100");
-		System.out.println(">>"+z.getClosest().toString()+"--"+z.getClosestAmount());
+		z.prettyPrint();
 		z.getProducts("http://api.zappos.com/Search?term=boots&limit=100&page=2");
-		System.out.println(">>"+z.getClosest().toString()+"--"+z.getClosestAmount());
+		z.prettyPrint();
 	}
 	
 	/*
@@ -63,13 +61,13 @@ public class Zappos {
 	 * checks the closeness to the total amount
 	 */
 	
-	public void testCloseness(double sum,ArrayList<JSONObject> arr){
+	private void testCloseness(double sum,ArrayList<JSONObject> arr){
 		double d=Math.abs(total-sum);
-    	if(d<delta){
-    		delta=d;
-    		closest=arr;
-    		amount=sum;
-    		//System.out.println(arr.toString()+"--"+sum+"--");
+    	if(d<this.delta){
+    		this.delta=d;
+    		this.closest=arr;
+    		this.amount=sum;
+    		//System.out.println(this.closest.toString()+"--"+sum+"--");
     	}
 	}
 	
@@ -77,7 +75,7 @@ public class Zappos {
 	 * iterates on json received from the API and forms an ArrayList of JSONObject's
 	 */
 	
-	public void iterateOnJSON(JSONObject json){
+	private void iterateOnJSON(JSONObject json){
 		if(json.has("results")){
 			ArrayList<JSONObject> arr=new ArrayList<JSONObject>();
 				try {
@@ -89,6 +87,7 @@ public class Zappos {
 					}
 					//System.out.println(arr.toString());
 					this.startCombination(arr, arr.size(), k);
+					
 				} catch (JSONException e) {
 					System.out.println("results not found");
 				}
@@ -99,7 +98,7 @@ public class Zappos {
 	 * form k-combinations of product JSONObjects
 	 */
 	
-	public void combinationUtil(ArrayList<JSONObject> arr, ArrayList<JSONObject> data, int start, int end, int index, int r)
+	private void combinationUtil(ArrayList<JSONObject> arr, ArrayList<JSONObject> data, int start, int end, int index, int r)
 	{
 	    // Current combination is ready to be printed, print it
 	    if (index == r)
@@ -116,9 +115,8 @@ public class Zappos {
 					e.printStackTrace();
 				}
 	        }	
-	        testCloseness(sum,data);
-	        //System.out.print(sum);
-	        //System.out.println();
+	        testCloseness(sum,new ArrayList<JSONObject>(data));
+	        //System.out.println(">>>>$"+sum+"--"+data.toString());
 	        return;
 	    }
 	 
@@ -137,18 +135,18 @@ public class Zappos {
 	 * boots recursive combining of JSONObjects
 	 */
 	
-	void startCombination(ArrayList<JSONObject> arr, int n, int r)
+	private void startCombination(ArrayList<JSONObject> arr, int n, int r)
 	{
 		ArrayList<JSONObject> data=new ArrayList<JSONObject>(3);
 	    combinationUtil(arr, data, 0, n-1, 0, r);
 	}
 	
 	/*
-	 * gets the current closest k-combination of products.
+	 * gets the current closest k-combination of products as an ArrayList of JSONObject of the products.
 	 */
 	
 	public ArrayList<JSONObject> getClosest(){
-		return closest;
+		return this.closest;
 	}
 	   
 	/*
@@ -156,6 +154,19 @@ public class Zappos {
 	 */
 	
 	public double getClosestAmount(){
-		return amount;
+		return this.amount;
 	}
+
+	/*
+	 * just to pretty print the combination of products
+	 */
+	
+	public void prettyPrint(){
+		ArrayList<JSONObject> tmp=this.getClosest();
+		System.out.println(">>$"+this.getClosestAmount());
+		for(int i=0;i<tmp.size();i++){
+			System.out.println("\t"+tmp.get(i).toString());
+		}
+	}
+	
 }
