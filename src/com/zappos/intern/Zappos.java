@@ -12,24 +12,38 @@ import us.monoid.web.Resty;
 
 
 public class Zappos {
-	private final static double total=580.00;
-	private final static int k=4;
-	
+	private double total;
+	private int k;
 	private ArrayList<JSONObject> closest=null;
-	private double close=0;
-	private double delta=total;
+	private double amount=0;
+	private double delta;
 	private Resty r;
 	private String apikey="52ddafbe3ee659bad97fcce7c53592916a6bfd73";
 
-	public Zappos(){
-		r=new Resty();
+	/*
+	 * The constructor takes in the total amount entered by the customer and the number of products
+	 */
+	
+	public Zappos(double total,int k){
+		this.r=new Resty();
+		this.total=total;
+		this.k=k;
+		this.delta=total;
 	}
 	
 	public static void main(String args[]){
-		Zappos z=new Zappos();
-		z.getProducts("http://api.zappos.com/Search?term=boots");
-		System.out.println(">>"+z.getClosest().toString());
+		Zappos z=new Zappos(150.94,1);
+		z.getProducts("http://api.zappos.com/Search?term=boots&limit=100");
+		System.out.println(">>"+z.getClosest().toString()+"--"+z.getClosestAmount());
+		z.getProducts("http://api.zappos.com/Search?term=boots&limit=100&page=2");
+		System.out.println(">>"+z.getClosest().toString()+"--"+z.getClosestAmount());
 	}
+	
+	/*
+	 * fetch the json of products from the url passed. The key is automatically appended to the url.
+	 * This function can be called as many times, and if the there is a combination of products whose total value 
+	 * is closer to the amount in any of the subsequent requests, the closest variable will be updated.  
+	 */
 	
 	public void getProducts(String url){
 		try {
@@ -45,33 +59,46 @@ public class Zappos {
 		}
 	}
 	
+	/*
+	 * checks the closeness to the total amount
+	 */
+	
 	public void testCloseness(double sum,ArrayList<JSONObject> arr){
 		double d=Math.abs(total-sum);
     	if(d<delta){
     		delta=d;
     		closest=arr;
-    		close=sum;
-    		System.out.println(arr.toString()+"--"+sum+"--");
+    		amount=sum;
+    		//System.out.println(arr.toString()+"--"+sum+"--");
     	}
 	}
+	
+	/*
+	 * iterates on json received from the API and forms an ArrayList of JSONObject's
+	 */
 	
 	public void iterateOnJSON(JSONObject json){
 		if(json.has("results")){
 			ArrayList<JSONObject> arr=new ArrayList<JSONObject>();
 				try {
 					JSONArray jsona=json.getJSONArray("results");
+					//System.out.println(jsona.length());
 					for(int i=0;i<jsona.length();i++){
 						JSONObject product = jsona.getJSONObject(i);
 						arr.add(product);
 					}
 					//System.out.println(arr.toString());
-					this.printCombination(arr, arr.size(), k);
+					this.startCombination(arr, arr.size(), k);
 				} catch (JSONException e) {
 					System.out.println("results not found");
 				}
 		}
 	}
 
+	/*
+	 * form k-combinations of product JSONObjects
+	 */
+	
 	public void combinationUtil(ArrayList<JSONObject> arr, ArrayList<JSONObject> data, int start, int end, int index, int r)
 	{
 	    // Current combination is ready to be printed, print it
@@ -106,14 +133,29 @@ public class Zappos {
 	    }
 	}
 	
-	void printCombination(ArrayList<JSONObject> arr, int n, int r)
+	/*
+	 * boots recursive combining of JSONObjects
+	 */
+	
+	void startCombination(ArrayList<JSONObject> arr, int n, int r)
 	{
 		ArrayList<JSONObject> data=new ArrayList<JSONObject>(3);
 	    combinationUtil(arr, data, 0, n-1, 0, r);
 	}
 	
+	/*
+	 * gets the current closest k-combination of products.
+	 */
+	
 	public ArrayList<JSONObject> getClosest(){
 		return closest;
 	}
 	   
+	/*
+	 * gets the current closest amount value
+	 */
+	
+	public double getClosestAmount(){
+		return amount;
+	}
 }
