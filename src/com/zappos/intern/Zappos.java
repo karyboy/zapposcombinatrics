@@ -12,27 +12,31 @@ import us.monoid.web.Resty;
 
 
 public class Zappos {
-	private final static double total=400.00;
-	private final static int k=3;
+	private final static double total=580.00;
+	private final static int k=4;
 	
 	private ArrayList<JSONObject> closest=null;
 	private double close=0;
 	private double delta=total;
+	private Resty r;
+	private String apikey="52ddafbe3ee659bad97fcce7c53592916a6bfd73";
 
+	public Zappos(){
+		r=new Resty();
+	}
 	
 	public static void main(String args[]){
 		Zappos z=new Zappos();
-		z.test();
+		z.getProducts("http://api.zappos.com/Search?term=boots");
 		System.out.println(">>"+z.getClosest().toString());
 	}
 	
-	public void test(){
-		Resty r = new Resty();
+	public void getProducts(String url){
 		try {
-			JSONResource j = r.json("http://api.zappos.com/Search?term=boots&key=52ddafbe3ee659bad97fcce7c53592916a6bfd73");
+			JSONResource j = r.json(url+"&key="+apikey);
 			this.iterateOnJSON(j.object());
 		} catch (IOException e) {
-			System.out.println(e.toString());
+			System.out.println("Cant Reach the API >> "+e.toString());
 			// TODO Auto-generated catch block
 			//e.printStackTrace();
 		} catch (Exception e) {
@@ -43,7 +47,6 @@ public class Zappos {
 	
 	public void testCloseness(double sum,ArrayList<JSONObject> arr){
 		double d=Math.abs(total-sum);
-    	//System.out.println(combination+"--"+sum+"--"+d);
     	if(d<delta){
     		delta=d;
     		closest=arr;
