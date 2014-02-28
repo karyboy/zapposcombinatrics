@@ -19,7 +19,7 @@ public class Zappos {
 	private String apikey="52ddafbe3ee659bad97fcce7c53592916a6bfd73";
 
 	/*
-	 * The constructor takes in the total amount entered by the customer and the number of products
+	 * The constructor takes in the desired dollar amount (total) and the desired number of products (k)
 	 */
 	
 	public Zappos(double total,int k){
@@ -30,7 +30,7 @@ public class Zappos {
 	}
 	
 	public static void main(String args[]){
-		Zappos z=new Zappos(1500.94,3);
+		Zappos z=new Zappos(800.94,3);
 		z.getProducts("http://api.zappos.com/Search?term=boots&limit=100");
 		z.prettyPrint();
 		z.getProducts("http://api.zappos.com/Search?term=boots&limit=100&page=2");
@@ -163,7 +163,7 @@ public class Zappos {
 	
 	public void prettyPrint(){
 		ArrayList<JSONObject> tmp=this.getClosest();
-		System.out.println(">>$"+this.getClosestAmount());
+		System.out.println("Current Closest Total Amount >> $"+this.getClosestAmount());
 		for(int i=0;i<tmp.size();i++){
 			System.out.println("\t"+tmp.get(i).toString());
 		}
